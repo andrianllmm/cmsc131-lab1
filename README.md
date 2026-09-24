@@ -96,10 +96,68 @@ Keep each part short. Update it when the plan changes.
 
 ### Problem analysis
 
-What the tool must read, what it must write, and which field is the hard
-one. State the header layout in your own words.
+The tool reads a 20 byte IPv4 Header in network order, decodes it and stores those values in a 13 field struct, validates it thru checksum. Thru encoding it then writes a new 20 byte header using the values from the struct also in network order. Several fields are tightly packed (single byte or straddle byte boundary)
+
+Header layout (20 bytes, network order)
+
+
+| Bytes | Field | Explanation |
+| -------- | -------- | -------- |
+| 0 (top 4 bits)     | version   | IP version, always 4 bits  |
+| 0 (low 4 bits)   | ihl   | header length, 32 bits = 4 bytes and max of 5 words since 20 bytes only   |
+| 1 (top 6 bits)    | dscp   | A traffic priority system   |
+| 1  (low 2 bits) | ecn   | Chceking if network is getting congested   |
+| 2-3     | total_length   | Size of the whole packet (header and data) in bytes; In big-endian   |
+| 4-5    | identification   | ID number for the packet so if packet was split, reassembly is possible   |
+| 6   (top 3 bits)  | flags   | Control bit system for fragments   |
+| 6-7  (low 5 bits + byte 7 ) | fragment_offset   | the position where this fragment's data belongs when reassembling the packet   |
+| 8     | ttl   | router counter that prevents packets from looping forever    |
+| 9    | protocol   | what is inside the payload and which handler to pass the data to  |
+| 10-11     | checksum   | Validation, specifically detects corruption in the header   |
+| 12-15    | source   | source of packets   |
+| 16-19     | destination   | destination of packets   |
+
 
 ### Solution architecture
+
+This project is split into three routines
+
+- decoder_header (decode.asm) 
+    - TBD
+- encode_header (encode.asm)
+    - does the reverse of decode; it rebuilds the 20-byte header from the field struct. Packs the different fields into its byte position. byte 0 gets the version and IHL, byte 1 gets DSCP and ECN, and the rest of the bit fields are broken into high and low bytes so they land in network order and their flags and offset are then carried by the bytes 6–7. Lastly, the checksum computes the value over the finished header thru its routine and its result is then stored back into the bytes 10-11.
+    
+- ip_checksum (checksum.asm) 
+    - TBD
+
+**Struct Offset**
+
+| Offset | Field           |
+|--------|-----------------|
+| +0     | version         |
+| +4     | ihl             |
+| +8     | dscp            |
+| +12    | ecn             |
+| +16    | total_length    |
+| +20    | identification  |
+| +24    | flags           |
+| +28    | fragment_offset |
+| +32    | ttl             |
+| +36    | protocol        |
+| +40    | checksum        |
+| +44    | src[0..3]       |
+| +48    | dst[0..3]       |
+
+
+**Register Plan**
+
+| Register | Role         |
+|--------|-----------------|
+|TBD|TBD
+
+
+
+
 
 How the three routines split the work. Which registers each routine uses,
 and how the struct offsets in `driver.c` map to the fields.
@@ -124,9 +182,9 @@ share one. The commit history must agree with this table.
 
 | Subsystem | Owner |
 |---|---|
-| Decode path (`decode.asm`) | |
-| Encode path (`encode.asm`) | |
-| Checksum and tests (`checksum.asm`, `tests/`) | |
+| Decode path (`decode.asm`) |Dejel De Asis (Dejely)|
+| Encode path (`encode.asm`) |John Romyr Lopez (romyr05)|
+| Checksum and tests (`checksum.asm`, `tests/`) |Andrian Lloyd Maagma (andrianllmm)|
 
 ## Quirks and Issues
 
