@@ -124,9 +124,9 @@ share one. The commit history must agree with this table.
 
 | Subsystem | Owner |
 |---|---|
-| Decode path (`decode.asm`) | |
-| Encode path (`encode.asm`) | |
-| Checksum and tests (`checksum.asm`, `tests/`) | |
+| Decode path (`decode.asm`) |Dejel De Asis |
+| Encode path (`encode.asm`) |John Romyr Lopez |
+| Checksum and tests (`checksum.asm`, `tests/`) |Andrian Lloyd Maagma |
 
 ## Quirks and Issues
 
