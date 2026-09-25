@@ -128,8 +128,11 @@ This project is split into three routines
     - does the reverse of decode; it rebuilds the 20-byte header from the field struct. Packs the different fields into its byte position. byte 0 gets the version and IHL, byte 1 gets DSCP and ECN, and the rest of the bit fields are broken into high and low bytes so they land in network order and their flags and offset are then carried by the bytes 6–7. Lastly, the checksum computes the value over the finished header thru its routine and its result is then stored back into the bytes 10-11.
     
 - ip_checksum (checksum.asm) 
-    - TBD
-
+    - Takes a pointer to the 20 byte header and its length.
+    - Reads the header for every pair as 16-bit big-endian words.
+    - Each word is a 32-bit accumulator, keeping the carries.
+    - The high 16 bit value is one's complement and returned in AX.
+    - The same routine is used for validation and encoding. 
 **Struct Offset**
 
 | Offset | Field           |
@@ -148,12 +151,32 @@ This project is split into three routines
 | +44    | src[0..3]       |
 | +48    | dst[0..3]       |
 
+### Checksum Arguments
+
+ip_checksum receives two cdecl arguments:
+
+[ebp+8]  = unsigned char *hdr
+[ebp+12] = int len
+
+The offsets come from the cdecl stack layout after the function creates
+its stack frame with ENTER. The first argument is at EBP+8 and the
+second argument is at EBP+12.
+
+The checksum routine does not access the 13-field header struct directly.
+It works on the raw 20-byte header pointed to by hdr.
+
 
 **Register Plan**
 
 | Register | Role         |
 |--------|-----------------|
-|TBD|TBD
+|EAX| 32-bit checksum accumulator; final checksum returned in AX   |
+|EBX| Holds the second byte of the current 16-bit word |
+|ECX| Remaining byte count |
+|EDX| Temporary register for constructing a word and folding carries|
+|ESI| Pointer to the current position in the header|
+|EDI| Not used|
+|EBP| Poiinter|
 
 
 
