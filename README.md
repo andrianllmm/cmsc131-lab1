@@ -195,10 +195,15 @@ who owns it.
 
 | Week | Goal | Owner |
 |---|---|---|
-| 1 | | |
-| 2 | | |
-| 3 | | |
-| 4 | Defense | |
+| 1 | Write the design notes and split the subsystems | All |
+| 1 | Decode prototype that reads the version and IHL | Andrian Lloyd Maagma |
+| 2 | Decode all thirteen fields on every sample | Andrian Lloyd Maagma |
+| 2 | Checksum that detects the corrupted sample | Dejel De Asis |
+| 2 | Encoder clears the checksum field before computing it | John Romyr Lopez |
+| 3 | Encode a header that matches the original byte for byte | John Romyr Lopez |
+| 3 | Add our own test headers and pass every check | Dejel De Asis |
+| 3 | Document quirks and issues | All |
+| 4 | Defend the project | All |
 
 ## Subsystem Ownership
 
