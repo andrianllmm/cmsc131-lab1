@@ -73,11 +73,6 @@ the top bit of the field is reserved and must be zero. `--df` sets 2 and
 
 ## Documentation
 
-The three sections at the end of this file are yours. Complete Design Notes
-and Subsystem Ownership before the Week 1 progress report. Complete Quirks
-and Issues before the Week 3 progress report. Each section says what it
-needs. Leave the rest of this file as it is.
-
 ## Fixtures
 
 The provided files are fixtures. The grader compares your fork against the
@@ -89,10 +84,6 @@ not edits.
 ---
 
 ## Design Notes
-
-Complete this section before the Week 1 progress report. The syllabus asks
-for problem analysis, a solution architecture, and an estimated timeline.
-Keep each part short. Update it when the plan changes.
 
 ### Problem analysis
 
