@@ -122,17 +122,17 @@ Header layout (20 bytes, network order)
 
 This project is split into three routines
 
-- decoder_header (decode.asm) 
+- decoder_header (decode.asm)
     - TBD
 - encode_header (encode.asm)
     - does the reverse of decode; it rebuilds the 20-byte header from the field struct. Packs the different fields into its byte position. byte 0 gets the version and IHL, byte 1 gets DSCP and ECN, and the rest of the bit fields are broken into high and low bytes so they land in network order and their flags and offset are then carried by the bytes 6–7. Lastly, the checksum computes the value over the finished header thru its routine and its result is then stored back into the bytes 10-11.
-    
-- ip_checksum (checksum.asm) 
+
+- ip_checksum (checksum.asm)
     - Takes a pointer to the 20 byte header and its length.
     - Reads the header for every pair as 16-bit big-endian words.
     - Each word is a 32-bit accumulator, keeping the carries.
     - The high 16 bit value is one's complement and returned in AX.
-    - The same routine is used for validation and encoding. 
+    - The same routine is used for validation and encoding.
 **Struct Offset**
 
 | Offset | Field           |
@@ -205,9 +205,9 @@ share one. The commit history must agree with this table.
 
 | Subsystem | Owner |
 |---|---|
-| Decode path (`decode.asm`) |Dejel De Asis (Dejely)|
+| Decode path (`decode.asm`) |Andrian Lloyd Maagma (andrianllmm)|
 | Encode path (`encode.asm`) |John Romyr Lopez (romyr05)|
-| Checksum and tests (`checksum.asm`, `tests/`) |Andrian Lloyd Maagma (andrianllmm)|
+| Checksum and tests (`checksum.asm`, `tests/`) |Dejel De Asis (Dejely)|
 
 ## Quirks and Issues
 
@@ -218,8 +218,8 @@ did about it.
 
 ### Known issues
 
-- 
+-
 
 ### Quirks
 
-- 
+-
