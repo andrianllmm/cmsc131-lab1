@@ -122,8 +122,10 @@ Header layout (20 bytes, network order)
 
 This project is split into three routines
 
-- decoder_header (decode.asm)
-    - TBD
+- decode_header (decode.asm)
+    - Fills the 13-field struct from the raw 20-byte header.
+    - Reads multi-byte fields byte by byte and recombines them, so the network byte order never reaches a register unconverted.
+    - Stores the checksum field as-is. It does not validate it; driver.c calls ip_checksum separately for the VALID line.
 - encode_header (encode.asm)
     - does the reverse of decode; it rebuilds the 20-byte header from the field struct. Packs the different fields into its byte position. byte 0 gets the version and IHL, byte 1 gets DSCP and ECN, and the rest of the bit fields are broken into high and low bytes so they land in network order and their flags and offset are then carried by the bytes 6–7. Lastly, the checksum computes the value over the finished header thru its routine and its result is then stored back into the bytes 10-11.
 
@@ -150,6 +152,13 @@ This project is split into three routines
 | +40    | checksum        |
 | +44    | src[0..3]       |
 | +48    | dst[0..3]       |
+
+### Decode Arguments
+
+decode_header receives two cdecl arguments:
+
+[ebp+8]  = unsigned char *hdr
+[ebp+12] = struct ipv4_fields *out
 
 ### Checksum Arguments
 
