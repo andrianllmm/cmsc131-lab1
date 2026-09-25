@@ -93,8 +93,8 @@ The tool reads a 20-byte IPv4 header in network order, decodes it and stores tho
 
 | Bytes | Field | Explanation |
 |---|---|---|
-| 0 (top 4 bits) | version | IP version, always 4 bits |
-| 0 (low 4 bits) | ihl | header length, 32 bits = 4 bytes and max of 5 words since 20 bytes only |
+| 0 (top 4 bits) | version | IP version, 4-bit field, always 4 for IPv4 |
+| 0 (low 4 bits) | ihl | header length in 32-bit (4-byte) words, 4-bit field (max 15), always 5 here (20 bytes) |
 | 1 (top 6 bits) | dscp | A traffic priority system |
 | 1 (low 2 bits) | ecn | Checking if network is getting congested |
 | 2-3 | total_length | Size of the whole packet (header and data) in bytes; In big-endian |
@@ -189,9 +189,6 @@ ip_checksum receives two cdecl arguments:
 ```
 
 ### Timeline
-
-One line per week. Name the subsystem each week finishes and the member
-who owns it.
 
 | Week | Goal | Owner |
 |---|---|---|
