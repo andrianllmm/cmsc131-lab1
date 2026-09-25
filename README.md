@@ -96,7 +96,7 @@ Keep each part short. Update it when the plan changes.
 
 ### Problem analysis
 
-The tool reads a 20 byte IPv4 Header in network order, decodes it and stores those values in a 13 field struct, validates it thru checksum. Thru encoding it then writes a new 20 byte header using the values from the struct also in network order. Several fields are tightly packed (single byte or straddle byte boundary)
+The tool reads a 20-byte IPv4 header in network order, decodes it and stores those values in a 13-field struct, validates it through checksum. Through encoding it then writes a new 20-byte header using the values from the struct also in network order. Several fields are tightly packed (single byte or straddle byte boundary).
 
 #### Header layout (20 bytes, network order)
 
@@ -105,7 +105,7 @@ The tool reads a 20 byte IPv4 Header in network order, decodes it and stores tho
 | 0 (top 4 bits) | version | IP version, always 4 bits |
 | 0 (low 4 bits) | ihl | header length, 32 bits = 4 bytes and max of 5 words since 20 bytes only |
 | 1 (top 6 bits) | dscp | A traffic priority system |
-| 1 (low 2 bits) | ecn | Chceking if network is getting congested |
+| 1 (low 2 bits) | ecn | Checking if network is getting congested |
 | 2-3 | total_length | Size of the whole packet (header and data) in bytes; In big-endian |
 | 4-5 | identification | ID number for the packet so if packet was split, reassembly is possible |
 | 6 (top 3 bits) | flags | Control bit system for fragments |
@@ -117,9 +117,6 @@ The tool reads a 20 byte IPv4 Header in network order, decodes it and stores tho
 | 16-19 | destination | destination of packets |
 
 ### Solution architecture
-
-How the three routines split the work. Which registers each routine uses,
-and how the struct offsets in `driver.c` map to the fields.
 
 #### Overview
 
@@ -173,16 +170,23 @@ decode_header receives two cdecl arguments:
 - Packs the flags and fragment offset into bytes 6-7.
 - Computes the checksum last, over the finished header, via `ip_checksum`, and stores the result in bytes 10-11.
 
+##### Arguments
+
+encode_header receives two cdecl arguments:
+
+```text
+[ebp+8]  = struct ipv4_fields *in
+[ebp+12] = unsigned char *hdr
+```
+
 #### `ip_checksum` (`checksum.asm`)
 
-- Takes a pointer to the 20 byte header and its length.
-- Reads the header for every pair as 16-bit big-endian words.
-- Each word is a 32-bit accumulator, keeping the carries.
-- The high 16 bit value is one's complement and returned in AX.
-- The same routine is used for validation and encoding.
-
-The checksum routine does not access the 13-field header struct directly.
-It works on the raw 20-byte header pointed to by hdr.
+- Takes a pointer to the 20-byte header and its length.
+- Reads the header two bytes at a time as 16-bit big-endian words.
+- Adds each word to a 32-bit accumulator, keeping the carries.
+- Folds the carries back in until the sum fits in 16 bits, then returns its one's complement (NOT) in AX.
+- Serves both validation and encoding with the same routine.
+- Works on the raw 20-byte header only. It does not access the 13-field struct.
 
 ##### Arguments
 
@@ -192,18 +196,6 @@ ip_checksum receives two cdecl arguments:
 [ebp+8]  = unsigned char *hdr
 [ebp+12] = int len
 ```
-
-##### Register plan
-
-| Register | Role |
-|---|---|
-| EAX | 32-bit checksum accumulator; final checksum returned in AX |
-| EBX | Holds the second byte of the current 16-bit word |
-| ECX | Remaining byte count |
-| EDX | Temporary register for constructing a word and folding carries |
-| ESI | Pointer to the current position in the header |
-| EDI | Not used |
-| EBP | Poiinter |
 
 ### Timeline
 
