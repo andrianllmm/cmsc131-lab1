@@ -201,9 +201,9 @@ who owns it.
 
 | Subsystem | Owner |
 |---|---|
-| Decode path (`decode.asm`) |Andrian Lloyd Maagma (andrianllmm)|
-| Encode path (`encode.asm`) |John Romyr Lopez (romyr05)|
-| Checksum and tests (`checksum.asm`, `tests/`) |Dejel De Asis (Dejely)|
+| Decode path (`decode.asm`) | Andrian Lloyd Maagma (andrianllmm) |
+| Encode path (`encode.asm`) | John Romyr Lopez (romyr05) |
+| Checksum and tests (`checksum.asm`, `tests/`) | Dejel De Asis (Dejely) |
 
 ## Quirks and Issues
 
