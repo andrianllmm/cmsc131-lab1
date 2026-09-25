@@ -62,6 +62,23 @@ _decode_header:
         ; the struct, and driver.c does the rest.
         ;
 
+        ; Pointers
+        mov     esi, [ebp+8]   ; pointer to header
+        mov     edi, [ebp+12]  ; pointer to struct
+
+        ; Byte 0: version (bits 7-4) | IHL (bits 3-0)
+        movzx   ebx, byte [esi+0]  ; ebx = byte 0
+
+        ; extract version
+        mov     eax, ebx
+        shr     eax, 4
+        mov     [edi+0], eax
+
+        ; extract IHL
+        mov     eax, ebx
+        and     eax, 0x0F
+        mov     [edi+4], eax
+
         popa
         mov     eax, 0
         leave
