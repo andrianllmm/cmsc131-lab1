@@ -26,3 +26,8 @@ frag8191_none valid
 frag8191_df valid
 frag8191_mf valid
 frag8191_df_mf valid
+len20 valid
+len65535 valid
+ttl1 valid
+ttl255 valid
+dscp63_ecn3 valid
