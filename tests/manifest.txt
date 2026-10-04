@@ -31,3 +31,4 @@ len65535 valid
 ttl1 valid
 ttl255 valid
 dscp63_ecn3 valid
+checksum_double_fold valid
