@@ -1,0 +1,14 @@
+Version:          4
+IHL:              5 (20 bytes)
+DSCP:             0
+ECN:              0
+Total Length:     65535
+Identification:   7238
+Flags:            2 (DF)
+Fragment Offset:  0
+TTL:              64
+Protocol:         6 (TCP)
+Header Checksum:  0x9CF8
+Source:           192.168.0.104
+Destination:      192.168.0.1
+Checksum:         VALID
