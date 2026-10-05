@@ -31,6 +31,20 @@
 ; not. The Makefile passes -d ELF_TYPE on Linux. This block then respells
 ; the names below to match. asm_io.inc does the same for _asm_main in the
 ; bootcamp blocks. Leave this block alone.
+
+; offsets
+%define HDR_ARG         8
+%define LEN_ARG         12
+
+; IPv4/checksum word constants
+%define WORD_SIZE       2
+%define NEXT_BYTE       1
+%define BYTE_SHIFT      8
+%define HALFWORD_SHIFT  16
+%define WORD_MASK       0xFFFF
+
+
+
 %ifdef ELF_TYPE
   %define _ip_checksum ip_checksum
   section .note.GNU-stack noalloc noexec nowrite progbits
@@ -69,8 +83,8 @@ _ip_checksum:
         ; esi = pointer to header
 
         xor     eax, eax
-        mov     ecx, [ebp + 12] ; len
-        mov     esi, [ebp+8]    ; pointer to hdr
+        mov     ecx, [ebp + LEN_ARG] ; len
+        mov     esi, [ebp + HDR_ARG]    ; pointer to hdr
 
         cmp     ecx, 0 ; loop guard
         jle    .fold
@@ -81,27 +95,28 @@ _ip_checksum:
         ; e.g. 45 00 -> 0x4500
 
         movzx   edx, byte [esi]
-        shl     edx, 8
+        shl     edx, BYTE_SHIFT
 
-        movzx   ebx, byte [esi+1]
+        movzx   ebx, byte [esi + NEXT_BYTE]
         or      edx, ebx
 
         add     eax, edx ; add to the total
 
-        add     esi, 2  ; advance pointer by 2 bytes
-        sub     ecx, 2  ; reduce length by 2 bytes until 0
+        add     esi, WORD_SIZE  ; advance pointer by 2 bytes
+        sub     ecx, WORD_SIZE  ; reduce length by 2 bytes until 0
         jnz     .sum_loop
 
         
 
 .fold: ; sum = lower 16 bits + upper 16 bits
         mov     edx, eax
-        shr     edx, 16
-        and     eax, 0xFFFF
+        shr     edx, HALFWORD_SHIFT
+
+        and     eax, WORD_MASK
         add     eax, edx
 
         ; if there is a carry we fold again
-        cmp     eax, 0xFFFF
+        cmp     eax, WORD_MASK
         ja      .fold
 
         not     ax 
