@@ -212,15 +212,70 @@ ip_checksum receives two cdecl arguments:
 
 ## Quirks and Issues
 
-Complete this section before the Week 3 progress report. The syllabus asks
-for documentation of quirks and issues with the complete implementation.
-One entry per item. State what happens, what causes it, and what the group
-did about it.
+One entry per item: what happens, what causes it, and what the group did
+about it.
 
 ### Known issues
 
--
+- **A plain 16-bit load reverses a multi-byte field.** Loading bytes 2-3
+  with a single `mov ax, [esi+2]` gives the field byte-swapped, because the
+  header is big-endian and x86 is little-endian. The total length `0x0014`
+  comes back as `0x1400`. Both paths read every multi-byte field one byte
+  at a time and recombine with a shift and an `or`, so network order never
+  reaches a register unconverted.
+
+- **The checksum field has to be zero while the checksum is computed.**
+  Encoding the real checksum into bytes 10-11 and then summing the header
+  folds that value into its own result, so the header no longer validates.
+  The encoder writes bytes 10-11 as zero first, calls `ip_checksum` over
+  the finished header, and only then stores the 16-bit result.
+
+- **The encoder must not copy the struct's checksum member.** The struct
+  carries the checksum that decode read, but encode recomputes it. Copying
+  `+40` into the output would reintroduce the stored value and defeat the
+  zero-then-compute step. Encode skips `+40` on purpose and computes
+  instead.
+
+- **The two routines take their pointers in opposite stack slots.** Decode
+  has `hdr` at `[ebp+8]` and the struct at `[ebp+12]`; encode has the
+  struct at `[ebp+8]` and `hdr` at `[ebp+12]`. Wiring `esi`/`edi` the same
+  way in both silently reads and writes the wrong buffer. Each file loads
+  the pointers per its own contract, and `contract_test` catches a mismatch.
+
+- **`ip_checksum` returns the carry fold, which can run twice.** Adding the
+  ten words of a full header into a 32-bit accumulator can overflow 16 bits
+  by more than one carry, and a single fold still leaves a value above
+  `0xFFFF`. The fold loops on `cmp eax, 0xFFFF / ja` until the sum fits,
+  then takes the one's complement. The manual's worked vector (`0x9CBC`)
+  is the test.
 
 ### Quirks
 
--
+- **A stub build is supposed to fail every check.** `checksum.asm` ships
+  returning 0, which reports every header VALID, and `encode.asm` writes
+  nothing, so the output is whatever the buffer held. A fresh `make check`
+  prints `7 of 7 checks differ`. That red run is the correct starting
+  state, not a broken toolchain.
+
+- **Exported names are spelled differently per platform.** Windows C
+  prefixes every exported symbol with an underscore and Linux C does not.
+  The Makefile passes `-d ELF_TYPE` on Linux, and the `%ifdef ELF_TYPE`
+  block at the top of each `.asm` respells `_decode_header`,
+  `_encode_header`, and `_ip_checksum` to match. The block is left alone.
+
+- **`checksum.asm` preserves `eax` across its epilogue.** It saves `ebx`
+  and `esi` with `push`/`pop` rather than `pusha`, so the answer already
+  sits in `ax` before the pops and the pops restore only `esi`/`ebx`.
+  Folding or popping after the result is placed would overwrite it.
+
+- **Four-bit fields occupy a full four-byte int in the struct.** Version,
+  IHL, DSCP, and ECN are nibble- or two-bit-wide on the wire but each take
+  a 4-byte `int` slot in the struct, so decode stores a full dword for a
+  field that is two bits wide. The wire width only reappears when encode
+  masks the field back down before packing the byte.
+
+- **The driver rejects out-of-range options with exit status 2 and writes
+  no file.** `--len` takes 20 through 65535 (the total length counts the
+  20-byte header), and `--flags` takes 0 through 3 because the top bit of
+  the field is reserved and must be zero. A refused option never reaches
+  the encoder.
